@@ -1,0 +1,52 @@
+- name: Instalando K3S no MASTER
+  hosts: MASTER
+  vars:
+    MASTER_IP: '10.10.30.100'
+  tasks:
+    - name: -> MASTER - Upgrade Linux
+      shell: |
+        sudo apt update && sudo apt upgrade && \
+        sudo apt install curl ca-certificates \
+        open-iscsi nfs-common
+      register: update_linux
+      ignore_errors: no 
+    - name: -> MASTER - Instalando o K3S
+      shell: |
+        curl -sfL https://get.k3s.io | sh -s - server \
+        --token clusterk3slocalbuild \
+        --write-kubeconfig-mode 644 \
+        --disable servicelb,traefik,metrics-server \
+        --node-taint CriticalAddonsOnly=true:NoExecute \
+        --bind-address "{{ MASTER_IP }}" \
+        --advertise-address "{{ MASTER_IP }}"
+      register: k3s_install
+      ignore_errors: no 
+    - name: -> MASTER - Acessar o arquivo de configuração do K3S
+      shell: cat /etc/rancher/k3s/k3s.yaml
+      register: k3s_cfg
+      ignore_errors: no 
+    - name: -> MASTER - Copiar o arquivo de configuração do k3s 
+      delegate_to: localhost
+      copy:
+        content: "{{ k3s_cfg.stdout }}"
+        dest: "{{ playbook_dir }}/k3s.cfg.yaml"
+      ignore_errors: no 
+- name: NODES - Instalando K3s nos NODES
+  hosts: NODES
+  vars:
+    MASTER_IP: '10.10.30.100'
+  tasks:
+    - name: -> NODE - Upgrade Linux
+      shell: |
+        sudo apt update && sudo apt upgrade && \
+        sudo apt install curl ca-certificates \
+        open-iscsi nfs-common
+      register: update_linux 
+      ignore_errors: no
+    - name: -> NODE - INSTALL K3S 
+      shell: |
+        curl -sfL https://get.k3s.io | sh -s - agent \
+        --server https://"{{ MASTER_IP }}":6443 \
+        --token clusterk3slocalbuild
+      register: k3s_install 
+      ignore_errors: no

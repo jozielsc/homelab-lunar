@@ -1,0 +1,10 @@
+- name: REBOOT ALL
+  hosts: SERVERS
+  tasks:
+    - name: -> REBOOT
+      shell: |
+        sudo reboot 
+      become: yes
+      become_user: agent
+      register: reboot 
+      ignore_errors: no

@@ -1,0 +1,31 @@
+all:
+  vars:
+    ansible_user: agent
+    ansible_ssh_primavate_key_file: ~/.ssh/id_rsa
+MASTER:
+  hosts:
+    k3s1:
+      ansible_host: 10.10.30.100
+      ansible_become: yes
+NODES:
+  hosts:
+    k3s-node1:
+      ansible_host: 10.10.30.101
+      ansible_become: yes
+    k3s-node2:
+      ansible_host: 10.10.30.102
+      ansible_become: yes
+    k3s-node3: 
+      ansible_host: 10.10.30.103
+      ansible_become: yes
+
+RANCHER:
+  hosts:
+    rancher:
+      ansible_host: 10.10.30.200
+      ansible_become: yes
+SERVERS:
+  children:
+    MASTER:
+    NODES:
+    RANCHER:
