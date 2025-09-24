@@ -1,5 +1,5 @@
 - name: REBOOT ALL
-  hosts: SERVERS
+  hosts: RECURSOS
   tasks:
     - name: -> REBOOT
       shell: |

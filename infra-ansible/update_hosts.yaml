@@ -1,0 +1,18 @@
+- hosts: all
+  tasks: 
+    #- name: Update and upgrade apt packages
+    #  become: true
+    #  apt:
+    #    upgrade: yes
+    #    update_cache: yes
+    #    cache_valid_time: 86400
+    - name: Install packages
+      ansible.builtin.apt:
+        name:
+          - zfsutils-linux 
+          - nfs-kernel-server
+          - cifs-utils
+          - open-iscsi
+        state: present
+        update_cache: true
+

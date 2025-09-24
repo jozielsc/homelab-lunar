@@ -1,0 +1,9 @@
+hostname: rancher.lunar.arpa
+replicas: 1
+ingress:
+  tls:
+    source: letsEncrypt
+letsEncrypt:
+  email: jozielsc@gmail.com
+  environment: production
+

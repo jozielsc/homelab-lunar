@@ -1,8 +1,8 @@
 all:
   vars:
     ansible_user: agent
-    ansible_ssh_primavate_key_file: ~/.ssh/id_rsa
-MASTER:
+    ansible_ssh_private_key_file: ~/.ssh/id_rsa
+SERVER_MAIN:
   hosts:
     k3s1:
       ansible_host: 10.10.30.100
@@ -18,14 +18,12 @@ NODES:
     k3s-node3: 
       ansible_host: 10.10.30.103
       ansible_become: yes
-
-RANCHER:
-  hosts:
-    rancher:
-      ansible_host: 10.10.30.200
+    k3s-node4: 
+      ansible_host: 10.10.30.104
       ansible_become: yes
-SERVERS:
+RECURSOS:
   children:
-    MASTER:
+    SERVER_MAIN:
+    SERVER_SECONDARY:
     NODES:
-    RANCHER:
+

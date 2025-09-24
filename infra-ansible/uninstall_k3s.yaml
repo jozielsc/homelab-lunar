@@ -1,12 +1,13 @@
 - name: Uninstall K3S - Master
-  hosts: MASTER
+  hosts:
+    - SERVER_MAIN
   tasks:
-    - name: -> MASTER - Matando o processo do K3S
+    - name: -> SERVER - Matando o processo do K3S
       shell: |
         k3s-killall.sh 
       register: k3s_killall 
       ignore_errors: yes
-    - name: -> MASTER - Remove o K3S 
+    - name: -> SERVER - Remove o K3S 
       shell: |
         k3s-uninstall.sh 
       register: k3s_uninstall 
