@@ -6,23 +6,21 @@
   tasks:
     - name: -> SERVER - Instalando o K3S
       shell: |
-        curl -sfL https://get.k3s.io | sh -s - server \
-        --node-ip {{ SERVER_MAIN_IP }} \
-        --disable=flannel,local-storage,metrics-server,servicelb,traefik \
-        --flannel-backend='none' \
-        --disable-network-policy \
-        --disable-cloud-controller \
+        curl -sfL https://get.k3s.io | sh -s - \
+        --flannel-backend=none \
         --disable-kube-proxy \
-        --token {{ TOKEN }} \
-        --write-kubeconfig-mode 644 
+        --disable servicelb \
+        --disable-network-policy \
+        --disable traefik \
+        --cluster-init
       register: k3s_install
       ignore_errors: no 
 
     - name: Lendo k3s server token
       ansible.builtin.slurp:
-        src: /var/lib/rancher/k3s/server/node-token
+        src: /var/lib/rancher/k3s/server/token
       register: k3s_server_token
-      ignore_errors: no    
+      ignore_errors: no
 
     - name: prepare token to servers 
       set_fact: 
@@ -40,15 +38,36 @@
         dest: "{{ playbook_dir }}/k3s.cfg.yaml"
       ignore_errors: no
 
+- name: Configurar kubeconfig localmente
+  hosts: localhost
+  gather_facts: yes
+  become: yes
+  tasks:
+    - name: Criar o diretorio ~/.kube 
+      ansible.builtin.file:
+        path: "{{ lookup('env', 'HOME') }}/.kube"
+        state: directory
+        mode: '0755'
+
+    - name: Copiar o arquivo k3s.cfg.yaml para diretorio kube 
+      ansible.builtin.copy:
+        src: k3s.cfg.yaml 
+        dest: "{{ lookup('env', 'HOME') }}/.kube/config"
+        remote_src: yes 
+        owner: "{{ lookup('env', 'USER')}}"
+        group: "{{ lookup('env', 'USER')}}"
+        mode: '0644'
+
 - name: NODES - Instalando K3s nos NODES
   hosts: NODES
   vars:
-    SERVER_MAIN_IP: '10.10.30.100'
+    API_SERVER_IP: '10.10.30.100'
+    API_SERVER_PORT: 6443
   tasks:
     - name: -> NODE - INSTALL K3S 
       shell: |
         curl -sfL https://get.k3s.io | sh -s - agent \
-        --server https://{{ SERVER_MAIN_IP }}:6443 \
+        --server https://{{ API_SERVER_IP }}:{{ API_SERVER_PORT }} \
         --token {{ hostvars['k3s1'].k3s_token }}
       register: k3s_install 
       ignore_errors: no
